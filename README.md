@@ -9,13 +9,6 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
 [![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-SimpleTAD-blue)](https://huggingface.co/tue-mps/towards-video-image-frozen)  
 
 
-<!-- SthSthV2 -->
-<p align="center">
-  <a href="https://youtu.be/OBby24DEkJA?si=lO_YrjrEii7UZNAT" target="_blank">
-    <img src="figs/videos/74225.viz_dinov3_gatedmambamix.gif" width="90.0%" />
-  </a>
-</p>
-
 <!-- NuScenes and PT -->
 <p align="center">
   <a href="https://youtu.be/a1VBQi2zMxY?si=8uysS0m-lsvTzVEM" target="_blank">
@@ -33,6 +26,13 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
   </a>
   <a href="https://youtu.be/CtgPfG3AXsg?si=0zZWC29fKZe2zPjE" target="_blank">
     <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="33%" />
+  </a>
+</p>
+
+<!-- SthSthV2 -->
+<p align="center">
+  <a href="https://youtu.be/OBby24DEkJA?si=lO_YrjrEii7UZNAT" target="_blank">
+    <img src="figs/videos/74225.viz_dinov3_gatedmambamix.gif" width="70.0%" />
   </a>
 </p>
 
