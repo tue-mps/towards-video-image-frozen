@@ -1,0 +1,12 @@
+logs/
+tmp/
+ckpts/
+video_examples/
+.idea
+.vscode
+__pycache__
+*.mp4
+*.png
+*.csv
+*.txt
+*.log
