@@ -19,20 +19,20 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
 <!-- NuScenes and PT -->
 <p align="center">
   <a href="https://youtu.be/a1VBQi2zMxY?si=8uysS0m-lsvTzVEM" target="_blank">
-    <img src="figs/videos/scene-0268.viz_dinov3_gatedmambamix.gif" width="59.5%" />
+    <img src="figs/videos/scene-0268.viz_dinov3_gatedmambamix.gif" width="63%" />
   </a>
   <a href="https://youtu.be/CtgPfG3AXsg?si=0zZWC29fKZe2zPjE" target="_blank">
-    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="39.5%" />
+    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="35%" />
   </a>
 </p>
 
 <!-- ScanNet and Waymo TBD -->
 <p align="center">
   <a href="https://youtu.be/RJVDMZYabjw?si=Ayc0ZEK5r_0QkKus" target="_blank">
-    <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="59.5%" />
+    <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="65%" />
   </a>
   <a href="https://youtu.be/CtgPfG3AXsg?si=0zZWC29fKZe2zPjE" target="_blank">
-    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="39.5%" />
+    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="33%" />
   </a>
 </p>
 
