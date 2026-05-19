@@ -6,7 +6,7 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
 [![arXiv](https://img.shields.io/badge/cs.CV-2507.09338-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2507.09338)
 -->
 
-[![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-SimpleTAD-blue)](https://huggingface.co/tue-mps/towards-video-image-frozen)  
+[![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-Towards...-blue)](https://huggingface.co/tue-mps/towards-video-image-frozen)  
 
 
 <!-- NuScenes and PT -->
