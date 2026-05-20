@@ -2,10 +2,7 @@
 
 Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Technology.
 
-<!-- commented out:
-[![arXiv](https://img.shields.io/badge/cs.CV-2507.09338-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2507.09338)
--->
-
+[![arXiv](https://img.shields.io/badge/cs.CV-2605.19137-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2605.19137)
 [![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-Towards...-blue)](https://huggingface.co/tue-mps/towards-video-image-frozen)  
 
 
