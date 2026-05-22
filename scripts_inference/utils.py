@@ -201,7 +201,10 @@ def load_original_frames(
 
 def load_init_bbox(path: str) -> torch.Tensor:
     """Read a JSON sidecar with key `init_bbox` (4 numbers, normalized xyxy in [0,1]).
-    Returns a (1, 4) float tensor (batch dim ready for the wrapper)."""
+    Returns a (1, 4) float tensor (batch dim ready for the wrapper).
+
+    For multi-object tracking use :func:`load_init_bboxes`.
+    """
     import json
     with open(path) as f:
         spec = json.load(f)
@@ -209,6 +212,32 @@ def load_init_bbox(path: str) -> torch.Tensor:
     if bbox.numel() != 4:
         raise ValueError(f"init_bbox must have 4 numbers, got {bbox.tolist()}")
     return bbox.unsqueeze(0)
+
+
+def load_init_bboxes(path: str) -> torch.Tensor:
+    """Read a JSON sidecar that defines one or more initial bboxes for tracking.
+
+    Accepts either of two schemas (in order of preference):
+      * ``init_bboxes``: a list of [x1, y1, x2, y2] (xyxy in [0,1])
+      * ``init_bbox``:   a single [x1, y1, x2, y2]
+
+    Returns: (Q, 4) float tensor.
+    """
+    import json
+    with open(path) as f:
+        spec = json.load(f)
+    if "init_bboxes" in spec:
+        arr = spec["init_bboxes"]
+        bboxes = torch.tensor(arr, dtype=torch.float32)
+        if bboxes.dim() != 2 or bboxes.shape[1] != 4:
+            raise ValueError(f"init_bboxes must be a (Q, 4) list, got shape {tuple(bboxes.shape)}")
+        return bboxes
+    if "init_bbox" in spec:
+        bbox = torch.tensor(spec["init_bbox"], dtype=torch.float32)
+        if bbox.numel() != 4:
+            raise ValueError(f"init_bbox must have 4 numbers, got {bbox.tolist()}")
+        return bbox.view(1, 4)
+    raise KeyError(f"Sidecar {path} has neither 'init_bboxes' nor 'init_bbox'")
 
 
 def load_query_points(path: str):

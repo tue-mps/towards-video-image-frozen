@@ -35,9 +35,12 @@ from scripts_inference.utils import (
     load_checkpoint,
     load_original_frames,
     load_video_frames,
-    load_init_bbox,
+    load_init_bboxes,
 )
 from scripts_inference.viz_utils import (
+    PALETTE,
+    bbox_cxcywh_to_xyxy,
+    bbox_xyxy_to_cxcywh,
     crop_square_norm_to_orig_norm,
     draw_bbox_norm,
     draw_text_outlined,
@@ -109,11 +112,21 @@ def main():
 
     print(f"Loading video: {args.video}")
     mean, std = normalization_for(args.arch)
-    frames_norm = load_video_frames(args.video, NUM_FRAMES, TARGET_FPS, FRAME_SIZE, mean=mean, std=std)
-    frames = frames_norm.unsqueeze(0).to(device)
-    frames_orig = load_original_frames(args.video, NUM_FRAMES, TARGET_FPS) if args.visualize else None
-    init_bbox = load_init_bbox(args.query).to(device)
-    print(f"  Frames: {tuple(frames.shape)}, init_bbox: {init_bbox.tolist()}")
+    # When --visualize, load every available frame at TARGET_FPS so a clip longer
+    # than NUM_FRAMES gets a longer viz (streaming wrapper handles arbitrary T).
+    n_in = None if args.visualize else NUM_FRAMES
+    frames_norm = load_video_frames(args.video, n_in, TARGET_FPS, FRAME_SIZE, mean=mean, std=std)
+    T_in = frames_norm.shape[0]
+    init_bboxes_xyxy = load_init_bboxes(args.query).to(device)         # (Q, 4) xyxy in cropped-sq
+    init_bboxes_cxcywh = bbox_xyxy_to_cxcywh(init_bboxes_xyxy)         # (Q, 4) cxcywh
+    Q = init_bboxes_xyxy.shape[0]
+    # Wrapper expects (B, T, C, H, W) frames and (B, 4) init. Batch by replicating
+    # the same clip Q times so each query gets its own autoregressive track.
+    frames = frames_norm.unsqueeze(0).expand(Q, -1, -1, -1, -1).contiguous().to(device)
+    frames_orig = load_original_frames(args.video, n_in, TARGET_FPS) if args.visualize else None
+    print(f"  Frames: {tuple(frames.shape)}, Q={Q} init bboxes (xyxy):")
+    for q in range(Q):
+        print(f"    q={q}: {init_bboxes_xyxy[q].tolist()}")
 
     print("Building model...")
     model = build_model(args.arch, args.backbone_weights).to(device)
@@ -121,46 +134,62 @@ def main():
     model.eval()
 
     print("Running forward pass...")
+    # Chunk encoder calls to avoid OOM on long multi-track clips
+    # (Q queries * T frames at 256x256 through DINOv3-L gets heavy past ~50 frames).
+    enc_batch = 32
     with torch.no_grad():
-        pred_bboxes = model(frames, init_bbox)            # (1, T, 4)
+        pred_bboxes_cxcywh = model(frames, init_bboxes_cxcywh, encoder_batch_size=enc_batch)
+    pred_bboxes_xyxy = bbox_cxcywh_to_xyxy(pred_bboxes_cxcywh).cpu().tolist()  # (Q, T, 4)
 
-    pred_bboxes = pred_bboxes[0].cpu().tolist()
-    print(f"\nPer-frame bbox predictions (streaming protocol, {NUM_FRAMES} frames):")
-    for t, bb in enumerate(pred_bboxes):
-        print(f"  t={t:2d}: [{bb[0]:.3f}, {bb[1]:.3f}, {bb[2]:.3f}, {bb[3]:.3f}]")
+    print(f"\nPer-frame bbox predictions per query (streaming protocol, {T_in} frames, xyxy):")
+    for q in range(Q):
+        print(f"  -- query {q} --")
+        for t in range(T_in):
+            bb = pred_bboxes_xyxy[q][t]
+            print(f"    t={t:2d}: [{bb[0]:.3f}, {bb[1]:.3f}, {bb[2]:.3f}, {bb[3]:.3f}]")
 
     if args.visualize:
-        save_visualization(args, frames_orig, init_bbox[0].cpu().tolist(), pred_bboxes)
+        save_visualization(args, frames_orig, init_bboxes_xyxy.cpu().tolist(), pred_bboxes_xyxy)
 
 
-def save_visualization(args, frames_orig, init_bbox, pred_bboxes):
+def save_visualization(args, frames_orig, init_bboxes, pred_bboxes):
     """Save an annotated mp4 with per-frame predicted bboxes overlaid.
 
-    Predictions are in [0, 1] xyxy of the model's center-cropped square
-    input; we remap each corner to the original rectangular frame for
-    drawing. Frame 0 shows the query init_bbox in yellow; t>=1 shows the
-    tracked prediction in green.
+    Predictions and inits are in [0, 1] xyxy of the model's center-cropped
+    square input; we remap each corner to the original rectangular frame
+    for drawing. Each query gets its own color from the shared PALETTE.
+    Frame 0 shows the init bbox; t>=1 shows the tracked prediction.
+
+    Args:
+        init_bboxes: (Q, 4) list of [x1, y1, x2, y2]
+        pred_bboxes: (Q, T, 4) list-of-lists of [x1, y1, x2, y2]
     """
+    Q = len(init_bboxes)
+    T = len(pred_bboxes[0]) if Q else 0
     out_frames = []
     for t, frame in enumerate(frames_orig):
         frame = frame.copy()
         H, W = frame.shape[:2]
-        bbox_sq = init_bbox if t == 0 else pred_bboxes[t]
-        x1, y1 = crop_square_norm_to_orig_norm(bbox_sq[0], bbox_sq[1], H, W)
-        x2, y2 = crop_square_norm_to_orig_norm(bbox_sq[2], bbox_sq[3], H, W)
-        color = (255, 220, 64) if t == 0 else (64, 255, 64)
-        label = "init" if t == 0 else None
-        draw_bbox_norm(frame, (x1, y1, x2, y2), color=color, thickness=max(2, min(H, W) // 200), label=label)
+        thickness = max(2, min(H, W) // 200)
         font_scale = max(0.5, W / 800.0)
-        thickness = max(1, int(font_scale * 1.5))
-        _, h, _ = text_size(f"t={t}", font_scale=font_scale, thickness=thickness)
+        for q in range(Q):
+            color = PALETTE[q % len(PALETTE)]
+            bbox_sq = init_bboxes[q] if t == 0 else pred_bboxes[q][t]
+            x1, y1 = crop_square_norm_to_orig_norm(bbox_sq[0], bbox_sq[1], H, W)
+            x2, y2 = crop_square_norm_to_orig_norm(bbox_sq[2], bbox_sq[3], H, W)
+            label = f"init_{q}" if t == 0 else None
+            draw_bbox_norm(frame, (x1, y1, x2, y2), color=color,
+                           thickness=thickness, label=label)
+        # frame counter top-left
+        text_thickness = max(1, int(font_scale * 1.5))
+        _, h, _ = text_size(f"t={t}", font_scale=font_scale, thickness=text_thickness)
         draw_text_outlined(frame, f"t={t}", org=(8, h + 8),
-                           fg=(255, 255, 255), font_scale=font_scale, thickness=thickness)
+                           fg=(255, 255, 255), font_scale=font_scale, thickness=text_thickness)
         out_frames.append(frame)
 
     out_path = viz_output_path(args.video, args.arch)
     write_mp4(out_path, out_frames, fps=TARGET_FPS)
-    print(f"[visualize] wrote {out_path}  ({len(out_frames)} frames @ {TARGET_FPS} fps)")
+    print(f"[visualize] wrote {out_path}  ({len(out_frames)} frames, {Q} tracks @ {TARGET_FPS} fps)")
 
 
 if __name__ == "__main__":

@@ -113,6 +113,26 @@ def colorize_depth_turbo(depth: np.ndarray) -> np.ndarray:
 # Coordinate mapping: model-input "cropped square" -> original-frame pixels
 # =============================================================================
 
+def bbox_xyxy_to_cxcywh(bbox):
+    """Convert a 4-element bbox from xyxy to cxcywh (works on list / tuple /
+    torch.Tensor of shape (..., 4))."""
+    if isinstance(bbox, torch.Tensor):
+        x1, y1, x2, y2 = bbox.unbind(-1)
+        return torch.stack([(x1 + x2) / 2, (y1 + y2) / 2, (x2 - x1).abs(), (y2 - y1).abs()], dim=-1)
+    x1, y1, x2, y2 = bbox
+    return [(x1 + x2) / 2, (y1 + y2) / 2, abs(x2 - x1), abs(y2 - y1)]
+
+
+def bbox_cxcywh_to_xyxy(bbox):
+    """Convert a 4-element bbox from cxcywh to xyxy (works on list / tuple /
+    torch.Tensor of shape (..., 4))."""
+    if isinstance(bbox, torch.Tensor):
+        cx, cy, w, h = bbox.unbind(-1)
+        return torch.stack([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], dim=-1)
+    cx, cy, w, h = bbox
+    return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
+
+
 def crop_square_to_orig_xy(
     u: float, v: float, H_orig: int, W_orig: int,
 ) -> Tuple[float, float]:
@@ -231,9 +251,8 @@ def draw_points_norm(
 
 # 12 visually distinct colors (RGB). Reused for query-point coloring.
 PALETTE = (
-    (255,  64,  64),  # red
-    ( 64, 255,  64),  # green
-    ( 64, 128, 255),  # blue
+    ( 64, 255,  64),  # green        — positive, neutral
+    ( 64, 128, 255),  # blue         — neutral
     (255, 200,  64),  # amber
     (192,  64, 255),  # magenta
     ( 64, 255, 255),  # cyan
@@ -243,6 +262,7 @@ PALETTE = (
     (200, 200, 255),  # lavender
     (160, 255, 200),  # seafoam
     (255, 255, 128),  # pale yellow
+    # Red intentionally omitted — it reads as an error indicator.
 )
 
 

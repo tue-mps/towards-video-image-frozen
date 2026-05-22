@@ -8,29 +8,19 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
 
 <!-- NuScenes and PT -->
 <p align="center">
-  <a href="https://youtu.be/a1VBQi2zMxY?si=8uysS0m-lsvTzVEM" target="_blank">
-    <img src="figs/videos/scene-0268.viz_dinov3_gatedmambamix.gif" width="63%" />
-  </a>
-  <a href="https://youtu.be/CtgPfG3AXsg?si=0zZWC29fKZe2zPjE" target="_blank">
-    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="35%" />
-  </a>
+  <img src="figs/videos/scene-0268.viz_dinov3_gatedmambamix.gif" width="63%" />
+  <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="35%" />
 </p>
 
 <!-- ScanNet and Waymo TBD -->
 <p align="center">
-  <a href="https://youtu.be/RJVDMZYabjw?si=Ayc0ZEK5r_0QkKus" target="_blank">
-    <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="65%" />
-  </a>
-  <a href="https://youtu.be/CtgPfG3AXsg?si=0zZWC29fKZe2zPjE" target="_blank">
-    <img src="figs/videos/video_1580_000384.viz_dinov3_gatedmambamix.gif" width="33%" />
-  </a>
+  <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="65%" />
+  <img src="figs/videos/12496433400137459534_120_000_140_000.viz_dinov3_gatedmambamix.gif" width="33%" />
 </p>
 
 <!-- SthSthV2 -->
 <p align="center">
-  <a href="https://youtu.be/OBby24DEkJA?si=lO_YrjrEii7UZNAT" target="_blank">
-    <img src="figs/videos/74225.viz_dinov3_gatedmambamix.gif" width="70.0%" />
-  </a>
+  <img src="figs/videos/74225.viz_dinov3_gatedmambamix.gif" width="70.0%" />
 </p>
 
 Video foundation models achieve strong performance across many video understanding tasks, but typically require large-scale pre-training on massive video datasets, resulting in substantial data and compute costs. In contrast, modern image foundation models already provide powerful spatial representations. This raises an important question: can competitive video models be built by reusing these spatial representations and pre-training only for temporal reasoning? We take initial steps toward exploring a lightweight training paradigm that freezes a pre-trained image foundation model and trains only a recurrent temporal module to process streaming video. By reusing an image foundation model as a spatial encoder, this approach could significantly reduce the amount of video data and compute required compared to end-to-end video pre-training. In this work, we explore the feasibility of this approach before investing in computing for video pre-training. Our empirical findings across multiple video understanding tasks suggest that strong temporal performance can emerge without large-scale video pre-training, motivating future work on recurrent video foundation models obtained by pre-training a temporal module on top of a frozen image foundation model.
@@ -107,6 +97,8 @@ same converter), and confirms they agree up to normal numerical precision
 
 ## 📍 Models
 
+You can find all checkpoints here: [huggingface.co/tue-mps/towards-video-image-frozen](https://huggingface.co/tue-mps/towards-video-image-frozen)
+
 For every task we ship three checkpoints, all using the streaming protocol:
 
 1. **RVM** — original RVM (frozen ViT + frozen GatedTransformerCore); only the readout is tuned.
@@ -127,9 +119,9 @@ For every task we ship three checkpoints, all using the streaming protocol:
 
 | Model              | mIoU   | ckpt | `--arch`                | frozen              | fine-tuned          |
 | ------------------ | ------ | ---- | ----------------------- | ------------------- | ------------------- |
-| RVM                | 72.7    | TBD  | `rvm`                   | Encoder, RNN module | Readout             |
-| DINOv3 + RVM_RNN   | 85.7   | TBD  | `dinov3_rvmrnn`         | Encoder             | RNN module, Readout |
-| DINOv3 + GMMix     | 85.0    | TBD  | `dinov3_gatedmambamix`  | Encoder             | RNN module, Readout |
+| RVM                | 72.7    | [`ckpts/Waymo/RVM_readout.ckpt`](https://huggingface.co/tue-mps/towards-video-image-frozen/resolve/main/ckpts/Waymo/RVM_readout.ckpt) | `rvm`                   | Encoder, RNN module | Readout             |
+| DINOv3 + RVM_RNN   | 85.7   | [`ckpts/Waymo/DINOv3+Gated.ckpt`](https://huggingface.co/tue-mps/towards-video-image-frozen/resolve/main/ckpts/Waymo/DINOv3+Gated.ckpt) | `dinov3_rvmrnn`         | Encoder             | RNN module, Readout |
+| DINOv3 + GMMix     | 85.0    | [`ckpts/Waymo/DINOv3+GMM.ckpt`](https://huggingface.co/tue-mps/towards-video-image-frozen/resolve/main/ckpts/Waymo/DINOv3+GMM.ckpt) | `dinov3_gatedmambamix`  | Encoder             | RNN module, Readout |
 
 ### Perception Test — point tracking
 
