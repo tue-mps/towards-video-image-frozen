@@ -14,8 +14,8 @@ Svetlana Orlova, Niccolò Cavagnero, Gijs Dubbelman \ Eindhoven University of Te
 
 <!-- ScanNet and Waymo TBD -->
 <p align="center">
-  <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="65%" />
-  <img src="figs/videos/12496433400137459534_120_000_140_000.viz_dinov3_gatedmambamix.gif" width="33%" />
+  <img src="figs/videos/scene0011_00.viz_dinov3_gatedmambamix.gif" width="55.4%" />
+  <img src="figs/videos/12496433400137459534_120_000_140_000.viz_dinov3_gatedmambamix.gif" width="41.6%" />
 </p>
 
 <!-- SthSthV2 -->
